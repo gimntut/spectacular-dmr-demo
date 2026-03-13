@@ -6,8 +6,6 @@ from xml.parsers import expat
 import pydantic
 import xmltodict
 from django.http import HttpRequest, HttpResponse
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from typing_extensions import override
 
 from dmr import Body, Controller, ResponseSpec, validate
@@ -42,8 +40,6 @@ except ImportError:  # pragma: no cover
 _CallableAny: TypeAlias = Callable[..., Any]
 
 
-# NOTE: this is a overly-simplified example of xml parsing / rendering.
-# You *will* need more work.
 @final
 class XmlParser(Parser):
     __slots__ = ()
@@ -57,11 +53,31 @@ class XmlParser(Parser):
         deserializer_hook: DeserializeFunc | None = None,
         *,
         request: HttpRequest,
+        model: Any,
     ) -> Any:
         try:
-            return xmltodict.parse(to_deserialize, process_namespaces=True)
+            parsed = xmltodict.parse(
+                to_deserialize,
+                process_namespaces=True,
+                postprocessor=self._postprocessor,
+                # TODO: this is really bad, but I have no idea what to do.
+                force_list={'detail', 'loc'},
+            )
         except expat.ExpatError as exc:
             raise RequestSerializationError(str(exc)) from None
+        return parsed[next(iter(parsed.keys()))]
+
+    def _postprocessor(
+        self,
+        path: Any,
+        key: str,
+        xml_value: Any,
+    ) -> tuple[str, Any]:
+        # xmltodict converts empty tags to `None`; for leaf fields in payloads
+        # we normalize them to empty strings to match OpenAPI string semantics.
+        if xml_value is None:
+            return key, ''
+        return key, xml_value
 
 
 @final
@@ -78,7 +94,7 @@ class XmlRenderer(Renderer):
     ) -> bytes:
         preprocessor = self._wrap_serializer(serializer_hook)
         raw_data = xmltodict.unparse(
-            preprocessor('', to_serialize)[1],
+            {type(to_serialize).__qualname__: to_serialize},
             preprocessor=preprocessor,
         )
         assert isinstance(raw_data, str)  # noqa: S101
@@ -105,11 +121,11 @@ class XmlRenderer(Renderer):
 
 @final
 class _RequestModel(pydantic.BaseModel):
-    root: dict[str, str]
+    payment_method_id: str
+    payment_amount: str
 
 
 @final
-@method_decorator(csrf_exempt, name='dispatch')
 class ContentNegotiationController(
     Controller[PydanticSerializer],
     Body[_RequestModel],
@@ -120,24 +136,31 @@ class ContentNegotiationController(
     def post(
         self,
     ) -> Annotated[
-        dict[str, str] | list[str],
-        conditional_type({
-            ContentType.json: list[str],
-            ContentType.xml: dict[str, str],
-        }),
+        _RequestModel | list[str],
+        conditional_type(
+            {
+                ContentType.json: list[str],
+                ContentType.xml: _RequestModel,
+            }
+        ),
     ]:
         if self.request.accepts(ContentType.json):
-            return list(self.parsed_body.root.values())
-        return self.parsed_body.root
+            return [
+                self.parsed_body.payment_method_id,
+                self.parsed_body.payment_amount,
+            ]
+        return self.parsed_body
 
     @validate(
         ResponseSpec(
             return_type=Annotated[
-                dict[str, str] | list[str],
-                conditional_type({
-                    ContentType.json: list[str],
-                    ContentType.xml: dict[str, str],
-                }),
+                _RequestModel | list[str],
+                conditional_type(
+                    {
+                        ContentType.json: list[str],
+                        ContentType.xml: _RequestModel,
+                    }
+                ),
             ],
             status_code=HTTPStatus.CREATED,
         ),
@@ -145,10 +168,13 @@ class ContentNegotiationController(
     def put(self) -> HttpResponse:
         if self.request.accepts(ContentType.json):
             return self.to_response(
-                list(self.parsed_body.root.values()),
+                [
+                    self.parsed_body.payment_method_id,
+                    self.parsed_body.payment_amount,
+                ],
                 status_code=HTTPStatus.CREATED,
             )
         return self.to_response(
-            self.parsed_body.root,
+            self.parsed_body,
             status_code=HTTPStatus.CREATED,
         )
