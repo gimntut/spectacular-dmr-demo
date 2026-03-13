@@ -2,7 +2,7 @@ import datetime as dt
 import uuid
 from collections.abc import Callable
 from http import HTTPStatus
-from typing import Any, TypeAlias, final
+from typing import Any, ClassVar, TypeAlias, final
 
 import pydantic
 from django.http import HttpResponse
@@ -26,6 +26,8 @@ _CallableAny: TypeAlias = Callable[..., Any]
 
 @final
 class _QueryData(pydantic.BaseModel):
+    __dmr_cast_null__: ClassVar[frozenset[str]] = frozenset(('start_from',))
+
     query: str = pydantic.Field(alias='q')
     start_from: dt.datetime | None = None
 
@@ -35,13 +37,13 @@ class _CustomHeaders(pydantic.BaseModel):
     token: str = pydantic.Field(alias='X-API-Token')
 
 
-class _UserInput(pydantic.BaseModel):
+class _SimpleUserInput(pydantic.BaseModel):
     email: str
     age: int = pydantic.Field(strict=True)
 
 
 @final
-class _UserOutput(_UserInput):
+class _SimpleUserOutput(_SimpleUserInput):
     uid: uuid.UUID
     token: str
     query: str
@@ -68,11 +70,11 @@ class _ConstrainedUserSchema(pydantic.BaseModel):
 class UserCreateBlueprint(  # noqa: WPS215
     Query[_QueryData],
     Headers[_CustomHeaders],
-    Body[_UserInput],
+    Body[_SimpleUserInput],
     Blueprint[PydanticSerializer],
 ):
-    def post(self) -> _UserOutput:
-        return _UserOutput(
+    def post(self) -> _SimpleUserOutput:
+        return _SimpleUserOutput(
             uid=uuid.uuid4(),
             email=self.parsed_body.email,
             age=self.parsed_body.age,
@@ -84,21 +86,21 @@ class UserCreateBlueprint(  # noqa: WPS215
 
 @final
 class UserListBlueprint(Blueprint[PydanticSerializer]):
-    def get(self) -> list[_UserInput]:
+    def get(self) -> list[_SimpleUserInput]:
         return [
-            _UserInput(email='first@example.org', age=1),
-            _UserInput(email='second@example.org', age=2),
+            _SimpleUserInput(email='first@example.org', age=1),
+            _SimpleUserInput(email='second@example.org', age=2),
         ]
 
 
 @final
 class UserUpdateBlueprint(
-    Body[_UserInput],
+    Body[_SimpleUserInput],
     Blueprint[PydanticSerializer],
     Path[_UserPath],
 ):
-    async def patch(self) -> _UserInput:
-        return _UserInput(
+    async def patch(self) -> _SimpleUserInput:
+        return _SimpleUserInput(
             email=self.parsed_body.email,
             age=self.parsed_path.user_id,
         )
@@ -111,15 +113,17 @@ class UserReplaceBlueprint(
 ):
     @validate(
         ResponseSpec(
-            return_type=_UserInput,
+            return_type=_SimpleUserInput,
             status_code=HTTPStatus.OK,
         ),
     )
     async def put(self) -> HttpResponse:
-        return self.to_response({
-            'email': 'new@email.com',
-            'age': self.parsed_path.user_id,
-        })
+        return self.to_response(
+            {
+                'email': 'new@email.com',
+                'age': self.parsed_path.user_id,
+            }
+        )
 
 
 @final

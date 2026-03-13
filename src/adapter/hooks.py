@@ -1,34 +1,13 @@
-from collections.abc import Sequence
+from dmr.openapi import build_schema
 
-from django.urls import URLResolver, URLPattern
-from dmr.openapi.views import OpenAPIView
-from drf_spectacular.generators import SchemaGenerator
-
-
-def dmr_adapter_hook(*, result: dict, generator: SchemaGenerator, **_kwargs) -> dict:
-    patterns = _get_patterns(generator.inspector.patterns)
-    schemas = []
-    schema_ids = set()
-    for pattern in patterns:
-        view = pattern.callback
-        if not hasattr(view, 'view_class') or not issubclass(view.view_class, OpenAPIView):
-            continue
-        schema = view.view_initkwargs['schema']
-        schema_id = id(schema)
-        if schema_id not in schema_ids:
-            schemas.append(schema)
-            schema_ids.add(schema_id)
-    return _merge_dicts(result, schemas[0])
+from dmr_demo_api.apps.openapi.config import get_config
+from dmr_demo_api.urls import router
 
 
-def _get_patterns(patterns: Sequence[URLPattern | URLResolver]) -> list[URLPattern]:
-    flat_patterns = []
-    for pattern in patterns:
-        if isinstance(pattern, URLResolver):
-            flat_patterns.extend(_get_patterns(pattern.url_patterns))
-        else:
-            flat_patterns.append(pattern)
-    return flat_patterns
+def dmr_adapter_hook(*, result: dict, generator, **_kwargs) -> dict:
+    openapi_schema = build_schema(router, config=get_config())
+    schema = openapi_schema.convert()
+    return _merge_dicts(result, schema)
 
 
 def _merge_dicts(data_1: dict, data_2: dict) -> dict:

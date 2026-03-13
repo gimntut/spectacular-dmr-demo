@@ -21,9 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # NOTE: we don't care, this is a test app
-SECRET_KEY = (
-    'django-insecure-id_rysnz6#-a97mx1mk3izoi$^$0=4#&!@9o&%b-06gu%a4kz&'  # noqa: S105
-)
+SECRET_KEY = 'django-insecure-id_rysnz6#-a97mx1mk3izoi$^$0=4#&!@9o&%b-06gu%a4kz&'  # noqa: S105
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,10 +35,10 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
-    'dmr_demo_api.apps.models_example',
-    'dmr_demo_api.apps.middlewares',
-    'dmr_demo_api.apps.controllers',
-    'dmr_demo_api.apps.openapi',
+    'server.apps.models_example',
+    'server.apps.middlewares',
+    'server.apps.controllers',
+    'server.apps.openapi',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -48,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'dmr.apps.DjangoModernRestConfig',
+    'dmr.security.jwt.blocklist',
 ]
 
 MIDDLEWARE = [
@@ -60,7 +59,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'dmr_demo_api.urls'
+ROOT_URLCONF = 'server.urls'
 
 TEMPLATES = [
     {
@@ -77,7 +76,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'dmr_demo_api.wsgi.application'
+WSGI_APPLICATION = 'server.wsgi.application'
 
 
 # Database

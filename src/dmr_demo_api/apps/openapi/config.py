@@ -1,16 +1,13 @@
-from dmr.openapi import (
-    OpenAPIConfig,
-)
+from dmr.openapi import OpenAPIConfig
 from dmr.openapi.objects import (
     Contact,
     ExternalDocumentation,
     License,
-    Server,
     Tag,
 )
 
 
-def get_openapi_config() -> OpenAPIConfig:
+def get_config() -> OpenAPIConfig:
     return OpenAPIConfig(
         title='Test API',
         version='1.0.0',
@@ -23,7 +20,7 @@ def get_openapi_config() -> OpenAPIConfig:
             url='https://test.com',
             description='Test External Documentation',
         ),
-        servers=[Server(url='http://127.0.0.1:8000/api/')],
+        servers=[],
         tags=[
             Tag(name='Test Tag', description='Tag Description'),
             Tag(name='Test Tag 2', description='Tag 2 Description'),

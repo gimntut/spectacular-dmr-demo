@@ -7,7 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "django>=5.2.11",
     "django-extensions>=4.1",
-    "django-modern-rest[msgspec,pydantic]",
+    "django-modern-rest[jwt,msgspec,openapi,pydantic]>=0.1.0",
     "djangorestframework>=3.16.1",
     "drf-spectacular[sidecar]>=0.29.0",
     "pyjwt>=2.11.0",
@@ -19,5 +19,3 @@ dev = [
     "ipython>=9.10.0",
 ]
 
-[tool.uv.sources]
-django-modern-rest = { git = "https://github.com/wemake-services/django-modern-rest", rev = "master" }

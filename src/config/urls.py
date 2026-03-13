@@ -17,10 +17,11 @@ Including another URLconf
 
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
 urlpatterns = [
     # ==+ API ===
     path("api/drf/", include("drf_api.urls")),
-    path("api/dmr/", include("dmr_demo_api.urls")),
+    path("", include("dmr_demo_api.urls")),
 ]
 # === Spectacular Swagger ====
 urlpatterns += [

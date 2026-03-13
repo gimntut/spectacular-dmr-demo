@@ -1,63 +1,76 @@
 from django.urls import include, path
+from dmr.openapi import build_schema
+from dmr.openapi.views import OpenAPIJsonView, RedocView, ScalarView, SwaggerView
+from dmr.plugins.pydantic import PydanticSerializer
+from dmr.routing import Router, build_404_handler
 
-from dmr.errors import build_404_handler
-from dmr.routing import Router
 from dmr_demo_api.apps.controllers import urls as controllers_urls
 from dmr_demo_api.apps.django_session_auth import urls as django_session_auth_urls
 from dmr_demo_api.apps.jwt_auth import urls as jwt_auth_urls
 from dmr_demo_api.apps.middlewares import urls as middleware_urls
 from dmr_demo_api.apps.models_example import urls as models_example_urls
 from dmr_demo_api.apps.negotiations import urls as negotiations_urls
-from dmr_demo_api.apps.openapi.urls import build_spec
+from dmr_demo_api.apps.openapi.config import get_config
 
-router = Router([
-    path(
-        'model-examples/',
-        include(
-            (models_example_urls.router.urls, 'models_example'),
-            namespace='model_examples',
+router = Router(
+    prefix='api/dmr/',
+    urls=[
+        path(
+            models_example_urls.router.prefix,
+            include(
+                (models_example_urls.router.urls, 'models_example'),
+                namespace='model_examples',
+            ),
         ),
-    ),
-    path(
-        'middlewares/',
-        include(
-            (middleware_urls.router.urls, 'middlewares'),
-            namespace='middlewares',
+        path(
+            middleware_urls.router.prefix,
+            include(
+                (middleware_urls.router.urls, 'middlewares'),
+                namespace='middlewares',
+            ),
         ),
-    ),
-    path(
-        'controllers/',
-        include(
-            (controllers_urls.router.urls, 'controllers'),
-            namespace='controllers',
+        path(
+            controllers_urls.router.prefix,
+            include(
+                (controllers_urls.router.urls, 'controllers'),
+                namespace='controllers',
+            ),
         ),
-    ),
-    path(
-        'negotiations/',
-        include(
-            (negotiations_urls.router.urls, 'negotiations'),
-            namespace='negotiations',
+        path(
+            negotiations_urls.router.prefix,
+            include(
+                (negotiations_urls.router.urls, 'negotiations'),
+                namespace='negotiations',
+            ),
         ),
-    ),
-    path(
-        'jwt-auth/',
-        include(
-            (jwt_auth_urls.router.urls, 'jwt_auth'),
-            namespace='jwt_auth',
+        path(
+            jwt_auth_urls.router.prefix,
+            include(
+                (jwt_auth_urls.router.urls, 'jwt_auth'),
+                namespace='jwt_auth',
+            ),
         ),
-    ),
-    path(
-        'django-session-auth/',
-        include(
-            (django_session_auth_urls.router.urls, 'django_session_auth'),
-            namespace='django_session_auth',
+        path(
+            django_session_auth_urls.router.prefix,
+            include(
+                (django_session_auth_urls.router.urls, 'django_session_auth'),
+                namespace='django_session_auth',
+            ),
         ),
-    ),
-])
+    ],
+)
+
+schema = build_schema(router, config=get_config())
 
 urlpatterns = [
-    path('api/', include((router.urls, 'server'), namespace='api')),
-    path('docs/', build_spec(router)),
+    path(router.prefix, include((router.urls, 'server'), namespace='api')),
+    path('docs/openapi.json/', OpenAPIJsonView.as_view(schema), name='openapi'),
+    path('docs/redoc/', RedocView.as_view(schema), name='redoc'),
+    path('docs/scalar/', ScalarView.as_view(schema), name='scalar'),
+    path('docs/swagger/', SwaggerView.as_view(schema), name='swagger'),
 ]
 
-handler404 = build_404_handler('api/')
+handler404 = build_404_handler(
+    router.prefix,
+    serializer=PydanticSerializer,
+)
