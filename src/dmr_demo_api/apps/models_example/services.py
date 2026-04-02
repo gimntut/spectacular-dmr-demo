@@ -22,6 +22,8 @@ def user_create_service(user_schema: serializers.UserCreateSchema) -> User:
             raise UniqueEmailError from None
 
         # Handle m2m:
-        tags = Tag.objects.bulk_create([Tag(name=tag.name) for tag in user_schema.tags])
+        tags = Tag.objects.bulk_create([
+            Tag(name=tag.name) for tag in user_schema.tags
+        ])
         user.tags.set(tags)
     return user

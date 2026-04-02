@@ -21,7 +21,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # NOTE: we don't care, this is a test app
-SECRET_KEY = 'django-insecure-id_rysnz6#-a97mx1mk3izoi$^$0=4#&!@9o&%b-06gu%a4kz&'  # noqa: S105
+SECRET_KEY = (
+    'django-insecure-id_rysnz6#-a97mx1mk3izoi$^$0=4#&!@9o&%b-06gu%a4kz&'  # noqa: S105
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -35,17 +37,24 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
-    'server.apps.models_example',
-    'server.apps.middlewares',
-    'server.apps.controllers',
-    'server.apps.openapi',
+    # Custom:
+    'dmr_demo_api.apps.models_example',
+    'dmr_demo_api.apps.middlewares',
+    'dmr_demo_api.apps.controllers',
+    'dmr_demo_api.apps.openapi',
+    'dmr_demo_api.apps.negotiations',
+    'dmr_demo_api.apps.jwt_auth',
+    'dmr_demo_api.apps.django_session_auth',
+    'dmr_demo_api.apps.etag',
+    # django:
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'dmr.apps.DjangoModernRestConfig',
+    # dmr:
+    'dmr',
     'dmr.security.jwt.blocklist',
 ]
 
@@ -55,6 +64,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -106,6 +116,14 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
+
+LOCALE_PATHS = ['../dmr/locale/']
+
+LANGUAGES = (
+    ('en-us', 'English'),
+    ('ru-ru', 'Russian'),
+    ('kk-kz', 'Kazakh'),
+)
 
 TIME_ZONE = 'UTC'
 

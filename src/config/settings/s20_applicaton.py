@@ -23,10 +23,18 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Your Project API",
-    "DESCRIPTION": "Your project description",
-    "VERSION": "1.0.0",
+    "TITLE": "Demo DRF + DMR",
+    "DESCRIPTION": (
+        "Demonstration of the possibilities of combining the DRF and DMR APIs\n\n"
+        "Other pages:\n"
+        "* [DMR Swagger](/docs/swagger/)\n"
+        "* [DMR Redoc](/docs/redoc/)\n"
+        "* [DMR Scalar](/docs/scalar/)\n"
+        "* [DMR Stoplight](/docs/stoplight/)"
+    ),
+    "VERSION": "0.4.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    # !!! This is where the adapter is connected !!!
     # !!! Вот здесь происходит подключение адаптера !!!
     "POSTPROCESSING_HOOKS": ["adapter.hooks.dmr_adapter_hook"],
 }
