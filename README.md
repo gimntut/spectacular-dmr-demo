@@ -8,7 +8,7 @@ This is prevented by the public interface - swagger/openapi. DRF has its own, an
 No self-respecting company will make its users suffer by forcing them to use two swagger UI.
 
 ## Solution
-You can create an adapter that allows you to connect dmr to an existing project with a stack of `django + drf + spectacular'.
+You can create an adapter that allows you to connect dmr to an existing project with a stack of `django + drf + spectacular`.
 As long as DRF is live in the project, the entire API will be available through its spectacular interface.
 When the entire API is rewritten to dmr, it will be possible to switch to the new interface and throw out the `DRF + spectacular` bundle.
 
@@ -16,7 +16,7 @@ It seems that combining DRF and dmr in one project is not the most reasonable so
 But this is offset by the fact that the risks associated with using the new technology are insured by having a reliable and proven backup option at hand.
 At the same time, the potential benefits of using dmr are great.
 
-The problem of a smooth transition from DRF exists in other frameworks as well.: 
+The problem of a smooth transition from DRF exists in other frameworks as well: 
 * [django-ninja](https://github.com/vitalik/django-ninja), 
 * [django-bolt](https://github.com/dj-bolt/django-bolt), 
 * [fastopenapi](https://fastopenapi.fatalyst.dev/frameworks/django/)
