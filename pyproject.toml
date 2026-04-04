@@ -10,6 +10,7 @@ dependencies = [
     "django-modern-rest[jwt,msgspec,openapi,pydantic,attrs]>=0.1.0",
     "djangorestframework>=3.16.1",
     "drf-spectacular[sidecar]>=0.29.0",
+    "mergedeep>=1.3.4",
     "pyjwt>=2.11.0",
     "xmltodict-rs>=0.13.9",
 ]
