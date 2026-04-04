@@ -1,4 +1,33 @@
 # Demo project for connecting Django Modern Rest to an existing DRF project 
+## TLDR / Краткое объяснение
+1. install mergedeep
+
+`pip install mergedeep`
+
+2. adapter/hooks.py
+```python
+from collections.abc import MutableMapping
+
+from dmr.openapi import build_schema
+from mergedeep import merge
+
+from dmr_demo_api.apps.openapi.config import get_config
+from dmr_demo_api.urls import router
+
+
+def dmr_adapter_hook(*, result: dict, generator, **_kwargs) -> MutableMapping:
+    openapi_schema = build_schema(router, config=get_config())
+    schema = openapi_schema.convert()
+    return merge(schema, result)
+```
+3. Using hook / Использование адаптера
+```python
+SPECTACULAR_SETTINGS = {
+    ...
+    "POSTPROCESSING_HOOKS": ["adapter.hooks.dmr_adapter_hook"],
+}
+```
+
 ## Motivation
 There are many projects in the world created using the Django Rest Framework (DRF). 
 Many of them have already migrated to the latest versions of python and django. The only thing left is to switch to Django Modern Rest (dmr). 
@@ -100,7 +129,7 @@ uv run src/manage.py runserver
 * `src/adapter/hooks.py` - файл с кодом адаптера
 * `src/config/settings/s20_applicaton.py` - файл настроек, в котором происходит подключение 
 
-#### Adapter connection code / Код подключения адаптера
+#### Adapter plugging code / Код подключения адаптера
 ```python
 SPECTACULAR_SETTINGS = {
     ...
