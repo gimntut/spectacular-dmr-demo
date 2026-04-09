@@ -7,7 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "django>=5.2.11",
     "django-extensions>=4.1",
-    "django-modern-rest[attrs,jwt,msgspec,openapi,pydantic]>=0.1.0",
+    "django-modern-rest[attrs,jwt,msgspec,openapi,pydantic]>=0.6.0",
     "djangorestframework>=3.16.1",
     "drf-spectacular[sidecar]>=0.29.0",
     "mergedeep>=1.3.4",
